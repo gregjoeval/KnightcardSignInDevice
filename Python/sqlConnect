@@ -1,30 +1,26 @@
 #Python file for connecting to the mysql database. must import mysqldb
 #!/usr/bin/python
-#import MySQLdb
+import pymysql.cursors
+import datetime
 
 def swipes():
     id = input("Waiting for swipe....")
     #print(id)
-    shortID = id[1:10]
-    return int(shortID)
+    shortID = id[1:10] #get useful id part from strip
+    today = datetime.date.today()
+    time = datetime.datetime.now().time()
 
-
-
-
-
-while True:
-    swipes()
-
-    db = MySQLdb.connect(host="localhost", user="", passwd="", db="") #insert db info
+    db = pymysql.connect(host="localhost", user="", passwd="", db="test2") #insert db info
 
     cur = db.cursor() #needed for executing queries
 
-    #cur.execute("SELECT * FROM student")  #gets all id numbers.
+    #cur.execute("SELECT * FROM student")  #gets all id numbers, date and time.
 
-    cur.execute("INSERT INTO student VALUES (shortID)") #insert values from text file.
 
-    #Also need to check when the last value was updated...maybe after every update of the database, delete
-    #the text file. Or we could just have the terminal open to the value scans right to the terminal
-    #Then have it hit enter, therefore executing the script and updating the DB with every new entry
+    sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
+    data = (shortID,today,time)
+    cur.execute(sql,data)
+    db.commit()
 
-    db.close()
+
+swipes()
