@@ -4,23 +4,23 @@ import pymysql.cursors
 import datetime
 
 def swipes():
-    id = input("Waiting for swipe....")
-    #print(id)
-    shortID = id[1:10] #get useful id part from strip
-    today = datetime.date.today()
-    time = datetime.datetime.now().time()
+    while True:
+        id = input("Waiting for swipe....")
+        #print(id)
+        shortID = id[1:10] #get useful id part from strip
+        today = datetime.date.today() #get date
+        time = datetime.datetime.now().time() #get time
 
-    db = pymysql.connect(host="localhost", user="", passwd="", db="test2") #insert db info
+        db = pymysql.connect(host="localhost", user="cardreader", passwd="smcvt", db="cardreader") #insert db info, this user has insert only
 
-    cur = db.cursor() #needed for executing queries
-
-    #cur.execute("SELECT * FROM student")  #gets all id numbers, date and time.
+        cur = db.cursor() #needed for executing queries
 
 
-    sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
-    data = (shortID,today,time)
-    cur.execute(sql,data)
-    db.commit()
+
+        sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
+        data = (shortID,today,time)
+        cur.execute(sql,data)
+        db.commit()
 
 
 swipes()
