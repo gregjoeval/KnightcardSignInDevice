@@ -6,6 +6,9 @@ import datetime
 def swipes():
     while True:
         id = input("Waiting for swipe....")
+        if "E?" in id:
+            print("Bad swipe, try again")
+            swipes()
         #print(id)
         shortID = id[1:10] #get useful id part from strip
         today = datetime.date.today() #get date
