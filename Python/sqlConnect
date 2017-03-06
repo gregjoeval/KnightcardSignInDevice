@@ -2,28 +2,44 @@
 #!/usr/bin/python
 import pymysql.cursors
 import datetime
+import easygui
+from tkinter import *
+from tkinter import messagebox
+
+
+#def successDisplay():
+#    root = Tk()
+#    root.withdraw()
+#    messagebox.showinfo("Say Hello", "Hello World")
+#    root.after(1000, lambda: root.destroy()) # Destroy the widget after 30 seconds
+
+
 
 def swipes():
-    while True:
-        id = input("Waiting for swipe....")
-        if "E?" in id:
-            print("Bad swipe, try again")
-            swipes()
-        #print(id)
-        shortID = id[1:10] #get useful id part from strip
-        today = datetime.date.today() #get date
-        time = datetime.datetime.now().time() #get time
 
-        db = pymysql.connect(host="localhost", user="cardreader", passwd="smcvt", db="cardreader") #insert db info, this user has insert only
+    id = input("Waiting for swipe....")
+    if "E?" in id:
+        print("Bad swipe, try again")
+        return
+    #print(id)
+    shortID = id[1:10] #get useful id part from strip
+    today = datetime.date.today() #get date
+    time = datetime.datetime.now().time() #get time
 
-        cur = db.cursor() #needed for executing queries
+    db = pymysql.connect(host="localhost", user="cardreader", passwd="smcvt", db="cardreader") #insert db info, this user has insert only
 
-
-
-        sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
-        data = (shortID,today,time)
-        cur.execute(sql,data)
-        db.commit()
+    cur = db.cursor() #needed for executing queries
 
 
-swipes()
+
+    sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
+    data = (shortID,today,time)
+    cur.execute(sql,data)
+    db.commit()
+
+    #successDisplay()
+
+
+
+while True:
+    swipes()
