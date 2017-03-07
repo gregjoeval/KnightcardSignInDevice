@@ -1,0 +1,19 @@
+#!/usr/bin/python
+
+import pymysql.cursors
+import smtplib
+
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+
+cache = []
+
+senderEmail = "cardswipereport@gmail.com" #what email to send the report from
+senderPassword = "" #get this from a .ymi file
+recEmail = "aleccaputo@yahoo.com" #what email to get the reports on
+
+def emailReport():
+    msg = MIMEMultipart()
+    msg['From'] = senderEmail
+	msg['To'] = recEmail
+    msg['Subject'] ='Sign In Report!'
