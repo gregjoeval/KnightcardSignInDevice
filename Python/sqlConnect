@@ -3,6 +3,7 @@
 import pymysql.cursors
 import datetime
 import easygui
+import ctypes #for use with msgBox()
 from tkinter import *
 from tkinter import messagebox
 
@@ -13,25 +14,29 @@ from tkinter import messagebox
 #    messagebox.showinfo("Say Hello", "Hello World")
 #    root.after(1000, lambda: root.destroy()) # Destroy the widget after 30 seconds
 
-
-
+def msgBox(title, text, style): #For use with Windows, mainly for testing purposes
+    ctypes.windll.user32.MessageBoxW(0, text, title, style)
+    # Styles:
+    # 0 : OK
+    # 1 : OK | Cancel
+    # 2 : Abort | Retry | Ignore
+    # 3 : Yes | No | Cancel
+    # 4 : Yes | No
+    # 5 : Retry | No
+    # 6 : Cancel | Try Again | Continue
 
 def swipes():
-
     id = input("Waiting for swipe....")
     if "E?" in id:
         print("Bad swipe, try again")
         return
     #print(id)
+    
     shortID = id[1:10] #get useful id part from strip
     today = datetime.date.today() #get date
     time = datetime.datetime.now().time() #get time
-
     db = pymysql.connect(host="localhost", user="cardreader", passwd="smcvt", db="cardreader") #insert db info, this user has insert only
-
     cur = db.cursor() #needed for executing queries
-
-
 
     sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
     data = (shortID,today,time)
@@ -39,7 +44,7 @@ def swipes():
     db.commit()
 
     #successDisplay()
-
+    return
 
 
 while True:
