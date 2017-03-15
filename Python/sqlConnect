@@ -1,46 +1,130 @@
+# Knightcard Sign-In Device
+# github.com/gregjoeval/KnightcardSignInDevice
+# Designed for use in the Makerspace of Saint Michael's College
+
 #Python file for connecting to the mysql database. must import mysqldb
 #!/usr/bin/python
-import pymysql.cursors
-import datetime
-import easygui
-from tkinter import *
-from tkinter import messagebox
 
+import sys
+#import pymysql.cursorsv #for use with swipes(): connection to mysql database
+import datetime #for use with swipes(): database entry timestamp
+#import easygui #currently unused
+import ctypes #for use with msgBox()
+from tkinter import * #for use with successDisplay()
+from tkinter import messagebox #for use with successDisplay()
 
-#def successDisplay():
-#    root = Tk()
-#    root.withdraw()
-#    messagebox.showinfo("Say Hello", "Hello World")
-#    root.after(1000, lambda: root.destroy()) # Destroy the widget after 30 seconds
+# Command Prompt:
+#       [Python Interpreter Path] [Script Path] [Output Mode] [Test Mode]
+#   Example:
+#       python.exe D:\Code\Python\sqlConnect.py true cl
+argPath = 0 # Argument 0: Path of script file
+                # D:\Code\Python\sqlConnect.py
+argOutput = 1 # Argument 2: Output Mode
+                # 'db' will run the code utilizing the database
+                # 'cl' will output any potential database entries to the command line
+                # 'txt' will output any potential database entries to a text file [NOT YET IMPLEMENTED]
+argTest = 2 # Argument 2: Test Mode
+                # Any string or 'false' will execute the script normally
+                # 'true' will run the scripts test code
 
+# Function(s):
+'''
+def successDisplay():
+    root = Tk()
+    root.withdraw()
+    messagebox.showinfo("Say Hello", "Hello World")
+    root.after(1000, lambda: root.destroy()) # Destroy the widget after 30 seconds
+'''
+'''
+def msgBox(title, text, style): #For use with Windows, mainly for testing purposes
+    ctypes.windll.user32.MessageBoxW(0, text, title, style)
+    # Styles:
+    # 0 : OK
+    # 1 : OK | Cancel
+    # 2 : Abort | Retry | Ignore
+    # 3 : Yes | No | Cancel
+    # 4 : Yes | No
+    # 5 : Retry | No
+    # 6 : Cancel | Try Again | Continue
+'''
+def swipes(outputMode, testMode):
+    # Input
+    if testMode == 1:
+        id = input("Waiting for TEST swipe...")
+        print("Input: \'", id, "\'")
+    else:
+        id = input("Waiting for swipe...")
 
-
-
-def swipes():
-
-    id = input("Waiting for swipe....")
+    # Error Checking
     if "E?" in id:
-        print("Bad swipe, try again")
+        print("Bad swipe, try again.")
         return
-    #print(id)
-    shortID = id[1:10] #get useful id part from strip
+
+    # Gather sign-in data
+    try:
+        shortID = int(id[1:10]) # get useful id portion from magnetic strip
+        if testMode == 1:
+            print("shortID: \'", shortID, "\'")
+    except ValueError:
+        print("Invalid card number, try again.")
+        if testMode == 1:
+            print("id[1:10]: \'", id[1:10], "\'")
+        return
     today = datetime.date.today() #get date
+    if testMode == 1:
+        print("today: \'", today, "\'")
     time = datetime.datetime.now().time() #get time
+    if testMode == 1:
+        print("time: \'", time, "\'")
 
-    db = pymysql.connect(host="localhost", user="cardreader", passwd="smcvt", db="cardreader") #insert db info, this user has insert only
-
-    cur = db.cursor() #needed for executing queries
-
-
-
-    sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
+    # Output
     data = (shortID,today,time)
-    cur.execute(sql,data)
-    db.commit()
+    if testMode == 1:
+        print("data: \'", data, "\'")
+    if outputMode == 0: # Database
+        print("Connecting to database...")
+        db = pymysql.connect(host="localhost", user="cardreader", passwd="smcvt", db="cardreader") #insert db info, this user has insert only
+        cur = db.cursor() #needed for executing queries
+        sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
+        cur.execute(sql,data)
+        db.commit()
+    elif outputMode == 1: # Text File
+        print("TEXT FILE OUTPUT NOT YET IMPLEMENTED.")
+    elif outputMode == 2: # Terminal
+        print("Sign-In Data: \'", data, "\'")
+    else:
+        print("INVALID OUTPUT MODE!")
 
     #successDisplay()
+    return
 
+# Main:
+# Check for outputMode argument input
+outputMode = 0
+if len(sys.argv) <= 1: # if this argument wasn't given...
+    outputMode = 0 # output goes to a database
+elif str(sys.argv[1]) == "db":
+    outputMode = 0 # output goes to a database
+elif str(sys.argv[1]) == "txt":
+    outputMode = 1 # output goes to a text file
+elif str(sys.argv[1]) == "cl":
+    outputMode = 2 # output goes to the terminal
+else: # Default output type
+    outputMode = 2 # output goes to the terminal
 
+# Check for testMode argument input
+testMode = 0
+if len(sys.argv) <= 2: # if this argument wasn't given...
+    testMode = 0 # Not running in Test Mode
+elif (str(sys.argv[2]) == "true") or (str(sys.argv[2]) == "True"):
+    testMode = 1 # Running in Test Mode
+    print("Test Mode Initiated.")
+    for i in range(0, len(sys.argv)):
+        print("argv[", i,"]: ", sys.argv[i])
+    print()
+else:
+    testMode = 0 # Not running in Test Mode
 
 while True:
-    swipes()
+    swipes(outputMode, testMode)
+    print() #puts space after every call to swipes()

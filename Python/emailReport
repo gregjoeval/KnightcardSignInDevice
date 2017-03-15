@@ -15,5 +15,5 @@ recEmail = "aleccaputo@yahoo.com" #what email to get the reports on
 def emailReport():
     msg = MIMEMultipart()
     msg['From'] = senderEmail
-	msg['To'] = recEmail
+    msg['To'] = recEmail
     msg['Subject'] ='Sign In Report!'
