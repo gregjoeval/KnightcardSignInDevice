@@ -6,9 +6,9 @@
 #!/usr/bin/python
 
 import sys
-import pymysql.cursorsv #for use with swipes(): connection to mysql database
+#import pymysql.cursorsv #for use with swipes(): connection to mysql database
 import datetime #for use with swipes(): database entry timestamp
-import easygui #currently unused
+#import easygui #currently unused
 import ctypes #for use with msgBox()
 from tkinter import * #for use with successDisplay()
 from tkinter import messagebox #for use with successDisplay()
@@ -61,9 +61,15 @@ def swipes(outputMode, testMode):
         return
 
     # Gather sign-in data
-    shortID = id[1:10] #get useful id portion from magnetic strip
-    if testMode == 1:
-        print("shortID: \'", shortID, "\'")
+    try:
+        shortID = int(id[1:10]) # get useful id portion from magnetic strip
+        if testMode == 1:
+            print("shortID: \'", shortID, "\'")
+    except ValueError:
+        print("Invalid card number, try again.")
+        if testMode == 1:
+            print("id[1:10]: \'", id[1:10], "\'")
+        return
     today = datetime.date.today() #get date
     if testMode == 1:
         print("today: \'", today, "\'")
@@ -74,7 +80,7 @@ def swipes(outputMode, testMode):
     # Output
     data = (shortID,today,time)
     if testMode == 1:
-        print("Sign-In Data: \'", data, "\'")
+        print("data: \'", data, "\'")
     if outputMode == 0: # Database
         print("Connecting to database...")
         db = pymysql.connect(host="localhost", user="cardreader", passwd="smcvt", db="cardreader") #insert db info, this user has insert only
@@ -85,16 +91,15 @@ def swipes(outputMode, testMode):
     elif outputMode == 1: # Text File
         print("TEXT FILE OUTPUT NOT YET IMPLEMENTED.")
     elif outputMode == 2: # Terminal
-        print(data)
+        print("Sign-In Data: \'", data, "\'")
     else:
         print("INVALID OUTPUT MODE!")
 
     #successDisplay()
-    print()
     return
 
 # Main:
-# Check for outputMode input
+# Check for outputMode argument input
 outputMode = 0
 if len(sys.argv) <= 1: # if this argument wasn't given...
     outputMode = 0 # output goes to a database
@@ -106,7 +111,8 @@ elif str(sys.argv[1]) == "cl":
     outputMode = 2 # output goes to the terminal
 else: # Default output type
     outputMode = 2 # output goes to the terminal
-# Check for testMode input
+
+# Check for testMode argument input
 testMode = 0
 if len(sys.argv) <= 2: # if this argument wasn't given...
     testMode = 0 # Not running in Test Mode
@@ -121,3 +127,4 @@ else:
 
 while True:
     swipes(outputMode, testMode)
+    print() #puts space after every call to swipes()
