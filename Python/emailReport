@@ -2,17 +2,15 @@
 # need to figure out the python3 syntax for config parser....I just don't have internet right now
 # Currently written in python 2.x
 
-import pymysql.cursors
-import smtplib
+import pymysql.cursors #currently unused. Will use when I need to attach a query
+import smtplib #for email
 
-from email.MIMEMultipart import MIMEMultipart
+from email.MIMEMultipart import MIMEMultipart #email
 from email.MIMEText import MIMEText
-from ConfigParser import SafeConfigParser
+from ConfigParser import SafeConfigParser #get into from .ini
 
 parser = SafeConfigParser()
-parser.read('signInConfig.ini')
-
-cache = []
+parser.read('signInConfig.ini') 
 
 senderEmail = parser.get('signInConfig', 'email')# email address notifications wil be sent from. Pulled from signInConfig.ini
 print senderEmail
@@ -21,11 +19,24 @@ print senderPassword
 recEmail = parser.get('signInConfig', 'recemail')
 print recEmail
 
-def emailReport():
+def emailReport(senderEmail,senderPassword,recEmail):
+    print "here"
     msg = MIMEMultipart()
-    msg['From'] = senderEmail
-    msg['To'] = recEmail
-    msg['Subject'] ='Sign In Report!'
-    
+    msg['From'] = senderEmail # get sender email
+    msg['To'] = recEmail # get rec email
+    msg['Subject'] ='Sign In Report!' # email subject
+    body = parser.get('signInConfig','emailBody') # body of message defined in .ini
 
-emailReport()
+    msg.attach(MIMEText(body.encode('utf-8'),'plain','utf-8')) # attach message to email
+
+    server = smtplib.SMTP('smtp.gmail.com', 587) # define server connection
+    server.starttls()
+    server.login(senderEmail, senderPassword) # log into gmail. Password will not be correct currently in .ini to maintain security (in google doc)
+    text = msg.as_string()
+    server.sendmail(senderEmail, recEmail, text) # send email
+
+    server.quit() #close connection
+
+
+
+emailReport(senderEmail,senderPassword,recEmail)
