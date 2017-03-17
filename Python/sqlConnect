@@ -63,6 +63,9 @@ def swipes(outputMode, testMode, outputFilePath):
     if "E?" in id:
         print("Bad swipe, try again.")
         return
+    if id[0] != '8':
+        print("Not a Knight Card, try again")
+        return
 
     # Gather sign-in data
     try:
@@ -139,6 +142,7 @@ if len(sys.argv) > 1:
             outputFilePath = filePath[:length+1] # Output Text File Path
     elif str(sys.argv[argOutput]) == "cl":
         outputMode = 2 # output goes to the terminal
+        outputFilePath = 0
 else: # if this argument wasn't given... Default output type
     outputMode = 2 # output goes to the terminal
 
