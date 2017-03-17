@@ -1,19 +1,31 @@
 #!/usr/bin/python
+# need to figure out the python3 syntax for config parser....I just don't have internet right now
+# Currently written in python 2.x
 
 import pymysql.cursors
 import smtplib
 
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
+from ConfigParser import SafeConfigParser
+
+parser = SafeConfigParser()
+parser.read('signInConfig.ini')
 
 cache = []
 
-senderEmail = "cardswipereport@gmail.com" #what email to send the report from
-senderPassword = "" #get this from a .ymi file
-recEmail = "aleccaputo@yahoo.com" #what email to get the reports on
+senderEmail = parser.get('signInConfig', 'email')# email address notifications wil be sent from. Pulled from signInConfig.ini
+print senderEmail
+senderPassword = parser.get('signInConfig','password') # Password from the email address notifications will be sent from pulled and encoded from signInConfig.ini
+print senderPassword
+recEmail = parser.get('signInConfig', 'recemail')
+print recEmail
 
 def emailReport():
     msg = MIMEMultipart()
     msg['From'] = senderEmail
     msg['To'] = recEmail
     msg['Subject'] ='Sign In Report!'
+    
+
+emailReport()
