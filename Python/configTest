@@ -1,0 +1,18 @@
+#!/usr/bin/python
+
+# python file for testing .ini reads. need to imprort codecs when i have internet to test encoding the password
+
+from ConfigParser import SafeConfigParser
+#import codecs
+
+parser = SafeConfigParser()
+parser.read('signInConfig.ini')
+
+#with codecs.open('unicode.ini', 'r', encoding='utf-8') as f:
+#    parser.readfp(f)
+
+
+password = parser.get('signInConfig.ini', 'password')
+
+
+#print 'Password:', password.encode('utf-8')

@@ -1,6 +1,7 @@
 # Knightcard Sign-In Device
 # github.com/gregjoeval/KnightcardSignInDevice
 # Designed for use in the Makerspace of Saint Michael's College
+# Using Python3
 
 #Python file for connecting to the mysql database. must import mysqldb
 #!/usr/bin/python
@@ -12,6 +13,8 @@ import datetime #for use with swipes(): database entry timestamp
 import ctypes #for use with msgBox()
 from tkinter import * #for use with successDisplay()
 from tkinter import messagebox #for use with successDisplay()
+from ConfigParser import SafeConfigParser #for use with config file
+
 
 # Command Prompt:
 #       [Python Interpreter Path] [Script Path] [Output Mode] [Test Mode] [Output File Path]
@@ -62,6 +65,9 @@ def swipes(outputMode, testMode, outputFilePath):
     # Error Checking
     if "E?" in id:
         print("Bad swipe, try again.")
+        return
+    if id[0] != '8':
+        print("Not a Knight Card, try again")
         return
 
     # Gather sign-in data
@@ -139,6 +145,7 @@ if len(sys.argv) > 1:
             outputFilePath = filePath[:length+1] # Output Text File Path
     elif str(sys.argv[argOutput]) == "cl":
         outputMode = 2 # output goes to the terminal
+        outputFilePath = 0
 else: # if this argument wasn't given... Default output type
     outputMode = 2 # output goes to the terminal
 
