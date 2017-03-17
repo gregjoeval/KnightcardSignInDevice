@@ -14,9 +14,9 @@ from tkinter import * #for use with successDisplay()
 from tkinter import messagebox #for use with successDisplay()
 
 # Command Prompt:
-#       [Python Interpreter Path] [Script Path] [Output Mode] [Test Mode]
+#       [Python Interpreter Path] [Script Path] [Output Mode] [Test Mode] [Output File Path]
 #   Example:
-#       python.exe D:\Code\Python\sqlConnect.py true cl
+#       python.exe D:\Code\Python\sqlConnect.py cl true
 argPath = 0 # Argument 0: Path of script file
                 # D:\Code\Python\sqlConnect.py
 argOutput = 1 # Argument 2: Output Mode
@@ -26,6 +26,10 @@ argOutput = 1 # Argument 2: Output Mode
 argTest = 2 # Argument 2: Test Mode
                 # Any string or 'false' will execute the script normally
                 # 'true' will run the scripts test code
+argOutputPath = 3 # Argument 3: Output File Path
+                # If the text file output type is specified then the script will look for a path
+                # If a path is not specified the file will be created in the same directory as the script file
+                # If a path is not specified but the text file output type is specified then the default output type will be used
 
 # Function(s):
 '''
@@ -47,7 +51,7 @@ def msgBox(title, text, style): #For use with Windows, mainly for testing purpos
     # 5 : Retry | No
     # 6 : Cancel | Try Again | Continue
 '''
-def swipes(outputMode, testMode):
+def swipes(outputMode, testMode, outputFilePath):
     # Input
     if testMode == 1:
         id = input("Waiting for TEST swipe...")
@@ -65,6 +69,7 @@ def swipes(outputMode, testMode):
         shortID = int(id[1:10]) # get useful id portion from magnetic strip
         if testMode == 1:
             print("shortID: \'", shortID, "\'")
+            shortID = 987654321
     except ValueError:
         print("Invalid card number, try again.")
         if testMode == 1:
@@ -89,7 +94,15 @@ def swipes(outputMode, testMode):
         cur.execute(sql,data)
         db.commit()
     elif outputMode == 1: # Text File
-        print("TEXT FILE OUTPUT NOT YET IMPLEMENTED.")
+        outputFileName = "KnightcardSignInList.txt"
+        outputFilePath += outputFileName
+        with open(outputFilePath, "a") as out: # Create/Open text file
+            dataOutputString = str(data[0])+" | "+str(data[1])+" | "+str(data[2])
+            if testMode == 1:
+                print("dataOutputString: \'", dataOutputString, "\'")
+                out.write(dataOutputString+"\n") # Append to the text file
+            else:
+                out.write(dataOutputString+"\n") # Append to the text file
     elif outputMode == 2: # Terminal
         print("Sign-In Data: \'", data, "\'")
     else:
@@ -99,32 +112,50 @@ def swipes(outputMode, testMode):
     return
 
 # Main:
+# Check for file path input
+filePath = ""
+if len(sys.argv) > 0:
+    filePath = sys.argv[argPath]
+else:
+    print("No file path specified.")
+
 # Check for outputMode argument input
 outputMode = 0
-if len(sys.argv) <= 1: # if this argument wasn't given...
-    outputMode = 0 # output goes to a database
-elif str(sys.argv[1]) == "db":
-    outputMode = 0 # output goes to a database
-elif str(sys.argv[1]) == "txt":
-    outputMode = 1 # output goes to a text file
-elif str(sys.argv[1]) == "cl":
-    outputMode = 2 # output goes to the terminal
-else: # Default output type
+if len(sys.argv) > 1:
+    if str(sys.argv[argOutput]) == "db":
+        outputMode = 0 # output goes to a database
+    elif str(sys.argv[argOutput]) == "txt":
+        outputMode = 1 # output goes to a text file
+        # Check for file path
+        try:
+            outputFilePath = sys.argv[argOutputPath]
+        except IndexError:
+            outputFilePath = filePath
+            char = ''
+            while char != '\\':
+                length = len(outputFilePath)-1
+                char = outputFilePath[length]
+                outputFilePath = outputFilePath[:length]
+            outputFilePath = filePath[:length+1] # Output Text File Path
+    elif str(sys.argv[argOutput]) == "cl":
+        outputMode = 2 # output goes to the terminal
+else: # if this argument wasn't given... Default output type
     outputMode = 2 # output goes to the terminal
 
 # Check for testMode argument input
 testMode = 0
-if len(sys.argv) <= 2: # if this argument wasn't given...
-    testMode = 0 # Not running in Test Mode
-elif (str(sys.argv[2]) == "true") or (str(sys.argv[2]) == "True"):
-    testMode = 1 # Running in Test Mode
-    print("Test Mode Initiated.")
-    for i in range(0, len(sys.argv)):
-        print("argv[", i,"]: ", sys.argv[i])
-    print()
-else:
+if len(sys.argv) > 2:
+    if (str(sys.argv[argTest]) == "true") or (str(sys.argv[argTest]) == "True"):
+        testMode = 1 # Running in Test Mode
+        print("Test Mode Initiated.")
+        for i in range(0, len(sys.argv)):
+            print("argv[", i,"]: ", sys.argv[i])
+        if outputMode == 1:
+            print("Text File Output Path:", outputFilePath)
+        print()
+else: # if this argument wasn't given...
     testMode = 0 # Not running in Test Mode
 
 while True:
-    swipes(outputMode, testMode)
+    swipes(outputMode, testMode, outputFilePath)
     print() #puts space after every call to swipes()
