@@ -2,15 +2,17 @@
 # need to figure out the python3 syntax for config parser....I just don't have internet right now
 # Currently written in python 2.x
 
-import pymysql.cursors #currently unused. Will use when I need to attach a query
+import pymysql.cursors #
 import smtplib #for email
+import time
 
 from email.MIMEMultipart import MIMEMultipart #email
 from email.MIMEText import MIMEText
 from ConfigParser import SafeConfigParser #get into from .ini
 
+#success = False
 parser = SafeConfigParser()
-parser.read('signInConfig.ini') 
+parser.read('signInConfig.ini')
 
 senderEmail = parser.get('signInConfig', 'email')# email address notifications wil be sent from. Pulled from signInConfig.ini
 print senderEmail
@@ -20,23 +22,44 @@ recEmail = parser.get('signInConfig', 'recemail')
 print recEmail
 
 def emailReport(senderEmail,senderPassword,recEmail):
-    print "here"
+    #print "here"
     msg = MIMEMultipart()
     msg['From'] = senderEmail # get sender email
     msg['To'] = recEmail # get rec email
     msg['Subject'] ='Sign In Report!' # email subject
-    body = parser.get('signInConfig','emailBody') # body of message defined in .ini
+
+    # connect to database
+    db = pymysql.connect(host="localhost", user="root", passwd="root", db="cardreader") #insert db info, this user has insert only
+    cur = db.cursor()
+    sql = "SELECT idNum FROM STUDENT"
+    cur.execute(sql)
+    # print each ID number to email
+    for row in cur:
+        idNum = str(row) #grab each ID number
+        newNum = idNum[2:len(idNum)-3 # get rid of parens and single quote marks
+        body = newNum
+
+        msg.attach(MIMEText(body.encode('utf-8'),'plain','utf-8')) #attach to email body
+        newLine = '\n' #insert newline
+        msg.attach(MIMEText(newLine.encode('utf-8'),'plain','utf-8')) #attach new line
+
+    db.commit() #not sure if this is needed if not inserting
 
     msg.attach(MIMEText(body.encode('utf-8'),'plain','utf-8')) # attach message to email
-
-    server = smtplib.SMTP('smtp.gmail.com', 587) # define server connection
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587) # define server connection
+    except:
+        print "could not connect, try again"
+        #time.sleep(5) # wait x amount of seconds until trying again. Maybe a day or something?
+        return
     server.starttls()
     server.login(senderEmail, senderPassword) # log into gmail. Password will not be correct currently in .ini to maintain security (in google doc)
     text = msg.as_string()
     server.sendmail(senderEmail, recEmail, text) # send email
 
+
     server.quit() #close connection
-
-
+    #return success == True
+    print "Success!"
 
 emailReport(senderEmail,senderPassword,recEmail)
