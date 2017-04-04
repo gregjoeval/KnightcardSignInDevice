@@ -13,7 +13,8 @@ import datetime #for use with swipes(): database entry timestamp
 import ctypes #for use with msgBox()
 from tkinter import * #for use with successDisplay()
 from tkinter import messagebox #for use with successDisplay()
-from ConfigParser import SafeConfigParser #for use with config file
+from configparser import SafeConfigParser #for use with config file
+import threading #for use with tkinter
 
 
 # Command Prompt:
@@ -35,25 +36,28 @@ argOutputPath = 3 # Argument 3: Output File Path
                 # If a path is not specified but the text file output type is specified then the default output type will be used
 
 # Function(s):
-'''
-def successDisplay():
+
+
+
+
+def successDisplay():      #tkinter display for successful sign in
     root = Tk()
-    root.withdraw()
-    messagebox.showinfo("Say Hello", "Hello World")
-    root.after(1000, lambda: root.destroy()) # Destroy the widget after 30 seconds
-'''
-'''
-def msgBox(title, text, style): #For use with Windows, mainly for testing purposes
-    ctypes.windll.user32.MessageBoxW(0, text, title, style)
-    # Styles:
-    # 0 : OK
-    # 1 : OK | Cancel
-    # 2 : Abort | Retry | Ignore
-    # 3 : Yes | No | Cancel
-    # 4 : Yes | No
-    # 5 : Retry | No
-    # 6 : Cancel | Try Again | Continue
-'''
+    Frame(root, width=250, height=100).pack()
+    Label(root, text='Thank You For Signing In!').place(x=10, y=10)
+
+    threading.Timer(3.0, root.destroy).start()
+
+    root.mainloop()
+    #return
+def errorDisplay():        #tkinter display for failed sign in
+    root = Tk()
+    Frame(root, width=250, height=100).pack()
+    Label(root, text='Error, Please Try Again!').place(x=10, y=10)
+
+    threading.Timer(3.0, root.destroy).start()
+
+    root.mainloop()
+
 def swipes(outputMode, testMode, outputFilePath):
     # Input
     if testMode == 1:
@@ -65,9 +69,11 @@ def swipes(outputMode, testMode, outputFilePath):
     # Error Checking
     if "E?" in id:
         print("Bad swipe, try again.")
+        errorDisplay()
         return
     if id[0] != '8':
         print("Not a Knight Card, try again")
+        errorDisplay()
         return
 
     # Gather sign-in data
@@ -114,7 +120,7 @@ def swipes(outputMode, testMode, outputFilePath):
     else:
         print("INVALID OUTPUT MODE!")
 
-    #successDisplay()
+    successDisplay()
     return
 
 # Main:
