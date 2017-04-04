@@ -42,6 +42,7 @@ argOutputPath = 3 # Argument 3: Output File Path
 
 def successDisplay():      #tkinter display for successful sign in
     root = Tk()
+    root.title("Thank You!")
     Frame(root, width=250, height=100).pack()
     Label(root, text='Thank You For Signing In!').place(x=10, y=10)
 
@@ -51,6 +52,7 @@ def successDisplay():      #tkinter display for successful sign in
     #return
 def errorDisplay():        #tkinter display for failed sign in
     root = Tk()
+    root.title("Error!")
     Frame(root, width=250, height=100).pack()
     Label(root, text='Error, Please Try Again!').place(x=10, y=10)
 
