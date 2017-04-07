@@ -7,14 +7,14 @@
 #!/usr/bin/python
 
 import sys
-#import pymysql.cursorsv #for use with swipes(): connection to mysql database
+import pymysql.cursors #for use with swipes(): connection to mysql database
 import datetime #for use with swipes(): database entry timestamp
 #import easygui #currently unused
 import ctypes #for use with msgBox()
 from tkinter import * #for use with successDisplay()
 from tkinter import messagebox #for use with successDisplay()
 from configparser import SafeConfigParser #for use with config file
-import threading #for use with tkinter
+
 
 
 # Command Prompt:
@@ -46,7 +46,7 @@ def successDisplay():      #tkinter display for successful sign in
     Frame(root, width=250, height=100).pack()
     Label(root, text='Thank You For Signing In!').place(x=10, y=10)
 
-    threading.Timer(3.0, root.destroy).start()
+    root.after(2000,root.destroy)
 
     root.mainloop()
     #return
@@ -56,9 +56,10 @@ def errorDisplay():        #tkinter display for failed sign in
     Frame(root, width=250, height=100).pack()
     Label(root, text='Error, Please Try Again!').place(x=10, y=10)
 
-    threading.Timer(3.0, root.destroy).start()
 
+    root.after(2000,root.destroy)
     root.mainloop()
+    return
 
 def swipes(outputMode, testMode, outputFilePath):
     # Input
@@ -73,7 +74,7 @@ def swipes(outputMode, testMode, outputFilePath):
         print("Bad swipe, try again.")
         errorDisplay()
         return
-    if id[0] != '8':
+    if id[0] != ';' or id[1]!='8':
         print("Not a Knight Card, try again")
         errorDisplay()
         return
@@ -102,7 +103,7 @@ def swipes(outputMode, testMode, outputFilePath):
         print("data: \'", data, "\'")
     if outputMode == 0: # Database
         print("Connecting to database...")
-        db = pymysql.connect(host="localhost", user="cardreader", passwd="smcvt", db="cardreader") #insert db info, this user has insert only
+        db = pymysql.connect(host="localhost", user="root", passwd="root", db="cardreaderTest") #insert db info, this user has insert only
         cur = db.cursor() #needed for executing queries
         sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
         cur.execute(sql,data)
@@ -172,5 +173,5 @@ else: # if this argument wasn't given...
     testMode = 0 # Not running in Test Mode
 
 while True:
-    swipes(outputMode, testMode, outputFilePath)
+    swipes(outputMode, testMode, '''outputFilePath''')
     print() #puts space after every call to swipes()
