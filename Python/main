@@ -9,8 +9,6 @@
 import sys
 import pymysql.cursors #for use with swipes(): connection to mysql database
 import datetime #for use with swipes(): database entry timestamp
-#import easygui #currently unused
-import ctypes #for use with msgBox()
 from tkinter import * #for use with successDisplay()
 from tkinter import messagebox #for use with successDisplay()
 from configparser import SafeConfigParser #for use with config file
@@ -18,28 +16,30 @@ from configparser import SafeConfigParser #for use with config file
 
 
 # Command Prompt:
-#       [Python Interpreter Path] [Script Path] [Output Mode] [Test Mode] [Output File Path]
+#       [Python Interpreter Path] [Script Path] [Test Mode]
 #   Example:
-#       python.exe D:\Code\Python\sqlConnect.py cl true
-argPath = 0 # Argument 0: Path of script file
+#       python.exe D:\Code\Python\sqlConnect.py true
+argPath = 0
+            # Command Line Argument 0: Path of script file
                 # D:\Code\Python\sqlConnect.py
-argOutput = 1 # Argument 2: Output Mode
-                # 'db' will run the code utilizing the database
-                # 'cl' will output any potential database entries to the command line
-                # 'txt' will output any potential database entries to a text file [NOT YET IMPLEMENTED]
-argTest = 2 # Argument 2: Test Mode
+argTest = 1
+            # Command Line Argument 1: Test Mode
                 # Any string or 'false' will execute the script normally
                 # 'true' will run the scripts test code
-argOutputPath = 3 # Argument 3: Output File Path
+
+#Config Arguments:
+#       [Output Mode] [Output File Path]
+argOutput = 'outputMode'
+            # Config Argument 1: Output Mode
+                # 'db' will run the code utilizing the database
+                # 'cl' will output any potential database entries to the command line
+                # 'txt' will output any potential database entries to a text file
+argOutputFilePath = 'outputFilePath'
+            # Config Argument 2: Output File Path
                 # If the text file output type is specified then the script will look for a path
                 # If a path is not specified the file will be created in the same directory as the script file
-                # If a path is not specified but the text file output type is specified then the default output type will be used
 
 # Function(s):
-
-
-
-
 def successDisplay():      #tkinter display for successful sign in
     root = Tk()
     root.title("Thank You!")
@@ -47,15 +47,14 @@ def successDisplay():      #tkinter display for successful sign in
     Label(root, text='Thank You For Signing In!').place(x=10, y=10)
 
     root.after(2000,root.destroy)
-
     root.mainloop()
-    #return
+    return
+
 def errorDisplay():        #tkinter display for failed sign in
     root = Tk()
     root.title("Error!")
     Frame(root, width=250, height=100).pack()
     Label(root, text='Error, Please Try Again!').place(x=10, y=10)
-
 
     root.after(2000,root.destroy)
     root.mainloop()
@@ -126,52 +125,73 @@ def swipes(outputMode, testMode, outputFilePath):
     successDisplay()
     return
 
-# Main:
-# Check for file path input
-filePath = ""
-if len(sys.argv) > 0:
-    filePath = sys.argv[argPath]
-else:
-    print("No file path specified.")
+def main(): #Main Method
+    # Check for file path input
+    filePath = ""
+    if len(sys.argv) > 0:
+        filePath = sys.argv[argPath]
+    else:
+        print("No file path specified.")
 
-# Check for outputMode argument input
-outputMode = 0
-if len(sys.argv) > 1:
-    if str(sys.argv[argOutput]) == "db":
-        outputMode = 0 # output goes to a database
-    elif str(sys.argv[argOutput]) == "txt":
-        outputMode = 1 # output goes to a text file
-        # Check for file path
-        try:
-            outputFilePath = sys.argv[argOutputPath]
-        except IndexError:
-            outputFilePath = filePath
-            char = ''
-            while char != '\\':
-                length = len(outputFilePath)-1
-                char = outputFilePath[length]
-                outputFilePath = outputFilePath[:length]
-            outputFilePath = filePath[:length+1] # Output Text File Path
-    elif str(sys.argv[argOutput]) == "cl":
+    # Configuration File Parser
+    config = SafeConfigParser()
+    #Locate the config file in the same folder as this script
+    configFilePath = filePath
+    char = ''
+    while char != '\\':
+        length = len(configFilePath)-1
+        char = configFilePath[length]
+        configFilePath = configFilePath[:length]
+    configFilePath = configFilePath + '\signInConfig.ini'
+    ###print(configFilePath)
+    config.read(configFilePath)
+
+    # Check for outputMode config argument
+    outputMode = 0
+    ###print(config.sections())
+    confOutputMode = config.get('Main', argOutput)
+    ###print(confOutputMode)
+    if confOutputMode != '':
+        if str(confOutputMode) == "db":
+            outputMode = 0 # output goes to a database
+        elif str(confOutputMode) == "txt":
+            outputMode = 1 # output goes to a text file
+            # Check for file path
+            outputFilePath = config.get('Main', argOutputFilePath)
+            if outputFilePath == '':
+                outputFilePath = filePath
+                char = ''
+                while char != '\\':
+                    length = len(outputFilePath)-1
+                    char = outputFilePath[length]
+                    outputFilePath = outputFilePath[:length]
+                outputFilePath = filePath[:length+1] # Output Text File Path
+        elif str(confOutputMode) == "cl":
+            outputMode = 2 # output goes to the terminal
+            outputFilePath = 0
+        else: # if this argument was incorrectly defined... Default output type
+            outputMode = 2 # output goes to the terminal
+            ###print("Default Output Type")
+    else: # if this argument wasn't given... Default output type
         outputMode = 2 # output goes to the terminal
-        outputFilePath = 0
-else: # if this argument wasn't given... Default output type
-    outputMode = 2 # output goes to the terminal
+        ###print("Default Output Type")
 
-# Check for testMode argument input
-testMode = 0
-if len(sys.argv) > 2:
-    if (str(sys.argv[argTest]) == "true") or (str(sys.argv[argTest]) == "True"):
-        testMode = 1 # Running in Test Mode
-        print("Test Mode Initiated.")
-        for i in range(0, len(sys.argv)):
-            print("argv[", i,"]: ", sys.argv[i])
-        if outputMode == 1:
-            print("Text File Output Path:", outputFilePath)
-        print()
-else: # if this argument wasn't given...
-    testMode = 0 # Not running in Test Mode
+    # Check for testMode argument input
+    testMode = 0
+    if len(sys.argv) > 1:
+        if (str(sys.argv[argTest]) == "true") or (str(sys.argv[argTest]) == "True"):
+            testMode = 1 # Running in Test Mode
+            print("Test Mode Initiated.")
+            for i in range(0, len(sys.argv)):
+                print("sys.argv[", i,"]: ", sys.argv[i])
+            if outputMode == 1:
+                print("Text File Output Path:", outputFilePath)
+            print()
+    else: # if this argument wasn't given...
+        testMode = 0 # Not running in Test Mode
 
-while True:
-    swipes(outputMode, testMode, '''outputFilePath''')
-    print() #puts space after every call to swipes()
+    while True:
+        swipes(outputMode, testMode, '''outputFilePath''')
+        print() #puts space after every call to swipes()
+
+main()

@@ -14,11 +14,11 @@ from ConfigParser import SafeConfigParser #get into from .ini
 parser = SafeConfigParser()
 parser.read('signInConfig.ini')
 
-senderEmail = parser.get('signInConfig', 'email')# email address notifications wil be sent from. Pulled from signInConfig.ini
+senderEmail = parser.get('EmailReport', 'email')# email address notifications wil be sent from. Pulled from signInConfig.ini
 print senderEmail
-senderPassword = parser.get('signInConfig','password') # Password from the email address notifications will be sent from pulled and encoded from signInConfig.ini
+senderPassword = parser.get('EmailReport','password') # Password from the email address notifications will be sent from pulled and encoded from signInConfig.ini
 print senderPassword
-recEmail = parser.get('signInConfig', 'recemail')
+recEmail = parser.get('EmailReport', 'recemail')
 print recEmail
 
 def emailReport(senderEmail,senderPassword,recEmail):
@@ -27,7 +27,7 @@ def emailReport(senderEmail,senderPassword,recEmail):
     msg['From'] = senderEmail # get sender email
     msg['To'] = recEmail # get rec email
     msg['Subject'] ='Sign In Report!' # email subject
-    
+
     # connect to database
     db = pymysql.connect(host="localhost", user="root", passwd="root", db="cardreaderTest") #insert db info, this user has insert only
     cur = db.cursor()
