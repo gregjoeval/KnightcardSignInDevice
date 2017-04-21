@@ -7,21 +7,23 @@
 #!/usr/bin/python
 
 import sys
-import pymysql.cursors #for use with swipes(): connection to mysql database
+#import pymysql.cursors #for use with swipes(): connection to mysql database
 import datetime #for use with swipes(): database entry timestamp
-from tkinter import * #for use with successDisplay()
-from tkinter import messagebox #for use with successDisplay()
-from configparser import SafeConfigParser #for use with config file
-
+from tkinter import * #for use with successDisplay() & errorDisplay()
+from tkinter import messagebox #for use with successDisplay() & errorDisplay()
+from configparser import SafeConfigParser #for use with the config file
 
 
 # Command Prompt:
 #       [Python Interpreter Path] [Script Path] [Test Mode]
 #   Example:
-#       python.exe D:\Code\Python\sqlConnect.py true
+#       python.exe D:\Code\Python\main true
+
+#Command Line Arguments:
+#       [Script Path] [Test Mode]
 argPath = 0
             # Command Line Argument 0: Path of script file
-                # D:\Code\Python\sqlConnect.py
+                # D:\Code\Python\main
 argTest = 1
             # Command Line Argument 1: Test Mode
                 # Any string or 'false' will execute the script normally
@@ -142,15 +144,12 @@ def main(): #Main Method
         length = len(configFilePath)-1
         char = configFilePath[length]
         configFilePath = configFilePath[:length]
-    configFilePath = configFilePath + '\signInConfig.ini'
-    ###print(configFilePath)
+    configFilePath = configFilePath + '\config.ini'
     config.read(configFilePath)
 
     # Check for outputMode config argument
     outputMode = 0
-    ###print(config.sections())
     confOutputMode = config.get('Main', argOutput)
-    ###print(confOutputMode)
     if confOutputMode != '':
         if str(confOutputMode) == "db":
             outputMode = 0 # output goes to a database
@@ -184,14 +183,22 @@ def main(): #Main Method
             print("Test Mode Initiated.")
             for i in range(0, len(sys.argv)):
                 print("sys.argv[", i,"]: ", sys.argv[i])
-            if outputMode == 1:
+            print("Configuration File Path:", configFilePath)
+            if outputMode == 0:
+                print("Output Mode: Database")
+            elif outputMode == 1:
+                print("Output Mode: Text File")
                 print("Text File Output Path:", outputFilePath)
+            elif outputMode == 2:
+                print("Output Mode: Command Line")
+            else:
+                print("Output Mode: Invalid Type [", outputMode, "]")
             print()
     else: # if this argument wasn't given...
         testMode = 0 # Not running in Test Mode
 
     while True:
-        swipes(outputMode, testMode, '''outputFilePath''')
+        swipes(outputMode, testMode, outputFilePath)
         print() #puts space after every call to swipes()
 
 main()
