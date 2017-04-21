@@ -1,0 +1,204 @@
+# Knightcard Sign-In Device
+# github.com/gregjoeval/KnightcardSignInDevice
+# Designed for use in the Makerspace of Saint Michael's College
+# Using Python3
+
+#Python file for connecting to the mysql database. must import mysqldb
+#!/usr/bin/python
+
+import sys
+#import pymysql.cursors #for use with swipes(): connection to mysql database
+import datetime #for use with swipes(): database entry timestamp
+from tkinter import * #for use with successDisplay() & errorDisplay()
+from tkinter import messagebox #for use with successDisplay() & errorDisplay()
+from configparser import SafeConfigParser #for use with the config file
+
+
+# Command Prompt:
+#       [Python Interpreter Path] [Script Path] [Test Mode]
+#   Example:
+#       python.exe D:\Code\Python\main true
+
+#Command Line Arguments:
+#       [Script Path] [Test Mode]
+argPath = 0
+            # Command Line Argument 0: Path of script file
+                # D:\Code\Python\main
+argTest = 1
+            # Command Line Argument 1: Test Mode
+                # Any string or 'false' will execute the script normally
+                # 'true' will run the scripts test code
+
+#Config Arguments:
+#       [Output Mode] [Output File Path]
+argOutput = 'outputMode'
+            # Config Argument 1: Output Mode
+                # 'db' will run the code utilizing the database
+                # 'cl' will output any potential database entries to the command line
+                # 'txt' will output any potential database entries to a text file
+argOutputFilePath = 'outputFilePath'
+            # Config Argument 2: Output File Path
+                # If the text file output type is specified then the script will look for a path
+                # If a path is not specified the file will be created in the same directory as the script file
+
+# Function(s):
+def successDisplay():      #tkinter display for successful sign in
+    root = Tk()
+    root.title("Thank You!")
+    Frame(root, width=250, height=100).pack()
+    Label(root, text='Thank You For Signing In!').place(x=10, y=10)
+
+    root.after(2000,root.destroy)
+    root.mainloop()
+    return
+
+def errorDisplay():        #tkinter display for failed sign in
+    root = Tk()
+    root.title("Error!")
+    Frame(root, width=250, height=100).pack()
+    Label(root, text='Error, Please Try Again!').place(x=10, y=10)
+
+    root.after(2000,root.destroy)
+    root.mainloop()
+    return
+
+def swipes(outputMode, testMode, outputFilePath):
+    # Input
+    if testMode == 1:
+        id = input("Waiting for TEST swipe...")
+        print("Input: \'", id, "\'")
+    else:
+        id = input("Waiting for swipe...")
+
+    # Error Checking
+    if "E?" in id:
+        print("Bad swipe, try again.")
+        errorDisplay()
+        return
+    if id[0] != ';' or id[1]!='8':
+        print("Not a Knight Card, try again")
+        errorDisplay()
+        return
+
+    # Gather sign-in data
+    try:
+        shortID = int(id[1:10]) # get useful id portion from magnetic strip
+        if testMode == 1:
+            print("shortID: \'", shortID, "\'")
+            shortID = 987654321
+    except ValueError:
+        print("Invalid card number, try again.")
+        if testMode == 1:
+            print("id[1:10]: \'", id[1:10], "\'")
+        return
+    today = datetime.date.today() #get date
+    if testMode == 1:
+        print("today: \'", today, "\'")
+    time = datetime.datetime.now().time() #get time
+    if testMode == 1:
+        print("time: \'", time, "\'")
+
+    # Output
+    data = (shortID,today,time)
+    if testMode == 1:
+        print("data: \'", data, "\'")
+    if outputMode == 0: # Database
+        print("Connecting to database...")
+        db = pymysql.connect(host="localhost", user="root", passwd="root", db="cardreaderTest") #insert db info, this user has insert only
+        cur = db.cursor() #needed for executing queries
+        sql="INSERT INTO student VALUES (%s,%s,%s)" #insert values from text file.
+        cur.execute(sql,data)
+        db.commit()
+    elif outputMode == 1: # Text File
+        outputFileName = "KnightcardSignInList.txt"
+        outputFilePath += outputFileName
+        with open(outputFilePath, "a") as out: # Create/Open text file
+            dataOutputString = str(data[0])+" | "+str(data[1])+" | "+str(data[2])
+            if testMode == 1:
+                print("dataOutputString: \'", dataOutputString, "\'")
+                out.write(dataOutputString+"\n") # Append to the text file
+            else:
+                out.write(dataOutputString+"\n") # Append to the text file
+    elif outputMode == 2: # Terminal
+        print("Sign-In Data: \'", data, "\'")
+    else:
+        print("INVALID OUTPUT MODE!")
+
+    successDisplay()
+    return
+
+def main(): #Main Method
+    # Check for file path input
+    filePath = ""
+    if len(sys.argv) > 0:
+        filePath = sys.argv[argPath]
+    else:
+        print("No file path specified.")
+
+    # Configuration File Parser
+    config = SafeConfigParser()
+    #Locate the config file in the same folder as this script
+    configFilePath = filePath
+    char = ''
+    while char != '\\':
+        length = len(configFilePath)-1
+        char = configFilePath[length]
+        configFilePath = configFilePath[:length]
+    configFilePath = configFilePath + '\config.ini'
+    config.read(configFilePath)
+
+    # Check for outputMode config argument
+    outputMode = 0
+    confOutputMode = config.get('Main', argOutput)
+    if confOutputMode != '':
+        if str(confOutputMode) == "db":
+            outputMode = 0 # output goes to a database
+        elif str(confOutputMode) == "txt":
+            outputMode = 1 # output goes to a text file
+            # Check for file path
+            outputFilePath = config.get('Main', argOutputFilePath)
+            if outputFilePath == '':
+                outputFilePath = filePath
+                char = ''
+                while char != '\\':
+                    length = len(outputFilePath)-1
+                    char = outputFilePath[length]
+                    outputFilePath = outputFilePath[:length]
+                outputFilePath = filePath[:length+1] # Output Text File Path
+        elif str(confOutputMode) == "cl":
+            outputMode = 2 # output goes to the terminal
+            outputFilePath = 0
+        else: # if this argument was incorrectly defined... Default output type
+            outputMode = 2 # output goes to the terminal
+            ###print("Default Output Type")
+    else: # if this argument wasn't given... Default output type
+        outputMode = 2 # output goes to the terminal
+        ###print("Default Output Type")
+
+    # Check for testMode argument input
+    testMode = 0
+    if len(sys.argv) > 1:
+        if (str(sys.argv[argTest]) == "true") or (str(sys.argv[argTest]) == "True"):
+            testMode = 1 # Running in Test Mode
+            print("Test Mode Initiated.")
+            for i in range(0, len(sys.argv)):
+                print("sys.argv[", i,"]: ", sys.argv[i])
+            print("Configuration File Path:", configFilePath)
+            if outputMode == 0:
+                print("Output Mode: Database")
+            elif outputMode == 1:
+                print("Output Mode: Text File")
+                print("Text File Output Path:", outputFilePath)
+            elif outputMode == 2:
+                print("Output Mode: Command Line")
+            else:
+                print("Output Mode: Invalid Type [", outputMode, "]")
+            print()
+    else: # if this argument wasn't given...
+        testMode = 0 # Not running in Test Mode
+
+    while True:
+        swipes(outputMode, testMode, outputFilePath)
+        print() #puts space after every call to swipes()
+
+main()

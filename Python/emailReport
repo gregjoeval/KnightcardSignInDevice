@@ -12,13 +12,13 @@ from ConfigParser import SafeConfigParser #get into from .ini
 
 #success = False
 parser = SafeConfigParser()
-parser.read('signInConfig.ini')
+parser.read('config.ini')
 
-senderEmail = parser.get('signInConfig', 'email')# email address notifications wil be sent from. Pulled from signInConfig.ini
+senderEmail = parser.get('EmailReport', 'email')# email address notifications wil be sent from. Pulled from signInConfig.ini
 print senderEmail
-senderPassword = parser.get('signInConfig','password') # Password from the email address notifications will be sent from pulled and encoded from signInConfig.ini
+senderPassword = parser.get('EmailReport','password') # Password from the email address notifications will be sent from pulled and encoded from signInConfig.ini
 print senderPassword
-recEmail = parser.get('signInConfig', 'recemail')
+recEmail = parser.get('EmailReport', 'recemail')
 print recEmail
 
 def emailReport(senderEmail,senderPassword,recEmail):
